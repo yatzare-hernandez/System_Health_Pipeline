@@ -5,6 +5,17 @@
 # health_report.json
 # ===========================================================================================================================================================
 
+# Verify administrator privileges
+if ((id-u) -ne 0) {
+    Write-Host ""
+    Write-Host "This script requires administrator privileges."
+    Write-Host "Please run:"
+    Write-Host "sudo pwsh ./analyze_metrics.ps1
+    exit
+}
+
+
+
 $projectRoot = Split-Path $PSScriptRoot -Parent
 
 $csvFile = Join-Path $projectRoot "data/metrics.csv"
@@ -23,7 +34,6 @@ if (!(Test-Path $configFile)) {
 }
 
 $config = Get-Content $configFile | ConvertFrom-Json
-
 $data = Import-Csv $csvFile
 
 $results = @()
@@ -33,7 +43,7 @@ foreach ($row in $data) {
 
      $alerts = @()
 
-     $validation = "PASS"
+     # CPU evaluation
 
      if ([int]$row.cpu_usage -ge $config.cpu_critical) {
         $alerts += "CPU usage exceeded critical threshold"
@@ -42,6 +52,9 @@ foreach ($row in $data) {
         $alerts += "CPU usage exceeded warning threshold"
      }
 
+     
+     # Disk evaluation
+
      if ([int]$row.disk_usage -ge $config.disk_critical) {
          $alerts += "Disk usage exceeded critical threshold"
      }
@@ -49,34 +62,17 @@ foreach ($row in $data) {
           $alerts += "Disk usage exceeded warning threshold"
      }
 
+
+     # Memory evaluation
      if ([int]$row.ram_free -le $config.ram_critical) {
           $alerts += "Available memory is critically low"
      }
      elseif ([int]$row.ram_free -le $config.ram_warning) {
           $alerts += "Available memory is low"
      }
-
-     switch ($row.log_level) {
-        "INFO" {
-             if ($alerts.Count -gt 0) {
-                $validation = "FAILED"
-             }
-     }
     
-     "Warning" {
-         if ($alerts.Count -eq 0) {
-             $validation = "FAILED"
-         }
-      }
 
-      "CRITICAL" {
-          if ($alerts.Count -eq 0) {
-              $validation = "FAILED"
-           }
-       }
-   }
-
-   $results += [PSCustomObject]@{
+     $results += [PSCustomObject]@{
 
         timestamp = $row.timestamp
         hostname = $row.hostname
@@ -87,16 +83,16 @@ foreach ($row in $data) {
  
         severity = $row.log_level
 
-        validation = $validation
+        
 
         alerts = $alerts
 
       }
-   }
+}
 
 $results | ConvertTo-Json -Depth 5 | Set-Content $outputFile
 
 Write-Host ""
 Write-Host "JSON report generated successfully."
-Write-Host $outputFile
+Write-Host "Output file: $outputFile"
 
