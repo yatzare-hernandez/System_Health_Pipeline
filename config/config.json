@@ -1,0 +1,10 @@
+{
+
+  "cpu-warning":61,
+  "cpu_critical": 86,
+  "disk_warning": 61,
+  "disk_critical": 86,
+  "ram_warning": 2047,
+  "ram_critical": 499
+
+}
