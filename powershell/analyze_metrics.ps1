@@ -6,11 +6,11 @@
 # ===========================================================================================================================================================
 
 # Verify administrator privileges
-if ((id-u) -ne 0) {
+if ((id -u) -ne 0) {
     Write-Host ""
     Write-Host "This script requires administrator privileges."
     Write-Host "Please run:"
-    Write-Host "sudo pwsh ./analyze_metrics.ps1
+    Write-Host "sudo pwsh ./analyze_metrics.ps1"
     exit
 }
 
